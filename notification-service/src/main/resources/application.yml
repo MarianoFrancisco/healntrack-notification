@@ -1,0 +1,56 @@
+server:
+  port: ${SERVER_PORT:8007}
+  shutdown: graceful
+
+spring:
+  config:
+    import: optional:file:.env[.properties]
+  application:
+    name: notification-service
+  jackson:
+    property-naming-strategy: LOWER_CAMEL_CASE
+
+  mail:
+    host: ${SMTP_HOST:smtp.gmail.com}
+    port: ${SMTP_PORT:587}
+    username: ${SMTP_USER:}
+    password: ${SMTP_PASS:}
+    properties:
+      mail.smtp.auth: true
+      mail.smtp.starttls.enable: true
+
+  kafka:
+    bootstrap-servers: ${KAFKA_HOST:localhost}:9092
+    consumer:
+      group-id: ${KAFKA_GROUP:notification-service}
+      auto-offset-reset: latest
+      enable-auto-commit: false
+      properties:
+        isolation.level: read_committed
+        max.poll.interval.ms: 600000
+        session.timeout.ms: 15000
+        heartbeat.interval.ms: 5000
+        max.poll.records: 500
+    listener:
+      concurrency: ${KAFKA_CONCURRENCY:3}
+
+notification:
+  topic:
+    requested: ${TOPIC_REQUESTED:notifications.requested}
+  email:
+    from: ${EMAIL_FROM:no-reply@healntrack.com}
+
+logging:
+  level:
+    root: ${LOG_LEVEL_ROOT:INFO}
+    org.hibernate.SQL: ${LOG_LEVEL_HIBERNATE_SQL:info}
+    org.hibernate.orm.jdbc.bind: ${LOG_LEVEL_HIBERNATE_BIND:info}
+
+eureka:
+  instance:
+    prefer-ip-address: true
+    lease-renewal-interval-in-seconds: 30
+    lease-expiration-duration-in-seconds: 90
+  client:
+    service-url:
+      defaultZone: http://${EUREKA_HOSTNAME:localhost}:${EUREKA_PORT:8761}/eureka/
