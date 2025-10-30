@@ -36,7 +36,7 @@ spring:
 
 notification:
   topic:
-    requested: ${TOPIC_REQUESTED:notifications.requested}
+    requested: ${TOPIC_REQUESTED:notification.requested}
   email:
     from: ${EMAIL_FROM:no-reply@healntrack.com}
 
