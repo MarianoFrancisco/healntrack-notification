@@ -43,13 +43,6 @@ public class NotificationKafkaConsumer {
         } catch (DomainException ex) {
             log.warn("DOMAIN_ERROR code={} requestId={} offset={}",
                     ex.getCode().name(), event.requestId, record.offset());
-        } catch (PermanentInfrastructureException ex) {
-            log.error("PERMANENT_INFRA_ERROR code={} requestId={} offset={}",
-                    ex.getCode().name(), event.requestId, record.offset(), ex);
-        } catch (TransientInfrastructureException ex) {
-            log.error("TRANSIENT_INFRA_ERROR code={} requestId={} offset={} (will retry)",
-                    ex.getCode().name(), event.requestId, record.offset(), ex);
-            throw ex;
         } catch (Exception ex) {
             log.error("UNKNOWN_ERROR requestId={} offset={} (will retry)", event.requestId, record.offset(), ex);
             throw new TransientInfrastructureException(ErrorCode.UNKNOWN_ERROR, ex);
