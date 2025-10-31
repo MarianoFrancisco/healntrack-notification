@@ -11,10 +11,10 @@ public final class NotificationRequestedEventMapper {
 
     public static SendNotificationCommand toCommand(NotificationRequestedEvent e) {
         return new SendNotificationCommand(
-                e.requestId,
-                new Recipient(e.to, e.toName),
-                e.subject,
-                e.bodyHtml
+                e.getRequestId(),
+                new Recipient(e.getTo(), e.getToName()),
+                e.getSubject(),
+                e.getBodyHtml()
         );
     }
 }

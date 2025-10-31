@@ -1,9 +1,9 @@
 package com.sa.healntrack.notification_service.notification.infrastructure.adapter.in.kafka;
 
+import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.sa.healntrack.notification_service.common.application.error.ErrorCode;
 import com.sa.healntrack.notification_service.common.application.exception.DomainException;
-import com.sa.healntrack.notification_service.common.application.exception.PermanentInfrastructureException;
 import com.sa.healntrack.notification_service.common.application.exception.TransientInfrastructureException;
 import com.sa.healntrack.notification_service.notification.application.port.in.send_notification.SendNotification;
 import com.sa.healntrack.notification_service.notification.application.port.in.send_notification.SendNotificationCommand;
@@ -29,22 +29,24 @@ public class NotificationKafkaConsumer {
             containerFactory = "notificationKafkaListenerContainerFactory"
     )
     public void onMessage(ConsumerRecord<String, String> record) {
-        NotificationRequestedEvent event;
-        try {
-            event = objectMapper.readValue(record.value(), NotificationRequestedEvent.class);
-        } catch (Exception ex) {
-            log.error("DESERIALIZATION_ERROR offset={}", record.offset(), ex);
-            return;
-        }
+        NotificationRequestedEvent event = null;
 
         try {
+            event = objectMapper.readValue(record.value(), NotificationRequestedEvent.class);
+
             SendNotificationCommand cmd = NotificationRequestedEventMapper.toCommand(event);
             useCase.handle(cmd);
+        } catch (JsonProcessingException | IllegalArgumentException ex) {
+            log.error("DESERIALIZATION_ERROR offset={}", record.offset(), ex);
+            return;
         } catch (DomainException ex) {
+            String reqId = (event != null ? event.getRequestId() : "unknown");
             log.warn("DOMAIN_ERROR code={} requestId={} offset={}",
-                    ex.getCode().name(), event.requestId, record.offset());
+                    ex.getCode().name(), reqId, record.offset());
         } catch (Exception ex) {
-            log.error("UNKNOWN_ERROR requestId={} offset={} (will retry)", event.requestId, record.offset(), ex);
+            String reqId = (event != null ? event.getRequestId() : "unknown");
+            log.error("UNKNOWN_ERROR requestId={} offset={} (will retry)",
+                    reqId, record.offset(), ex);
             throw new TransientInfrastructureException(ErrorCode.UNKNOWN_ERROR, ex);
         }
     }
