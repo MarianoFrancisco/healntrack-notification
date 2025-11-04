@@ -22,23 +22,23 @@ spring:
   kafka:
     bootstrap-servers: ${KAFKA_HOST:localhost}:9092
     consumer:
-      group-id: ${KAFKA_GROUP:notification-service}
+      group-id: ${KAFKA_GROUP:billing-service}
       auto-offset-reset: latest
       enable-auto-commit: false
+      key-deserializer: org.apache.kafka.common.serialization.StringDeserializer
+      value-deserializer: org.apache.kafka.common.serialization.ByteArrayDeserializer
       properties:
-        isolation.level: read_committed
-        max.poll.interval.ms: 600000
-        session.timeout.ms: 15000
-        heartbeat.interval.ms: 5000
-        max.poll.records: 500
+        spring.json.trusted.packages: "com.sa.healntrack.*"
     listener:
       concurrency: ${KAFKA_CONCURRENCY:3}
+      ack-mode: record
 
-notification:
-  topic:
+topics:
+  notification:
     requested: ${TOPIC_REQUESTED:notification.requested}
-  email:
-    from: ${EMAIL_FROM:no-reply@healntrack.com}
+
+email:
+  from: ${EMAIL_FROM:no-reply@healntrack.com}
 
 logging:
   level:

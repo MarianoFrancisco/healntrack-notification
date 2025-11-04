@@ -25,10 +25,9 @@ public class NotificationKafkaConsumer {
 
     @KafkaListener(
             topics = "#{@notificationTopicProperties.requested}",
-            groupId = "#{@kafkaConsumerProperties.groupId}",
-            containerFactory = "notificationKafkaListenerContainerFactory"
+            groupId = "#{@kafkaConsumerProperties.groupId}"
     )
-    public void onMessage(ConsumerRecord<String, String> record) {
+    public void onMessage(ConsumerRecord<String, byte[]> record) {
         NotificationRequestedEvent event = null;
 
         try {
@@ -38,7 +37,6 @@ public class NotificationKafkaConsumer {
             useCase.handle(cmd);
         } catch (JsonProcessingException | IllegalArgumentException ex) {
             log.error("DESERIALIZATION_ERROR offset={}", record.offset(), ex);
-            return;
         } catch (DomainException ex) {
             String reqId = (event != null ? event.getRequestId() : "unknown");
             log.warn("DOMAIN_ERROR code={} requestId={} offset={}",
