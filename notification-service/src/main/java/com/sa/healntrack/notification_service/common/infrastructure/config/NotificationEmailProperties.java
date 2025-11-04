@@ -6,7 +6,7 @@ import org.springframework.boot.context.properties.ConfigurationProperties;
 
 @Getter
 @Setter
-@ConfigurationProperties(prefix = "notification.email")
+@ConfigurationProperties(prefix = "email")
 public class NotificationEmailProperties {
     private String from = "no-reply@healntrack.com";
 }

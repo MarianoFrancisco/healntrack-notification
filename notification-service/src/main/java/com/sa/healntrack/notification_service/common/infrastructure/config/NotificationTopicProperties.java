@@ -8,7 +8,7 @@ import org.springframework.stereotype.Component;
 @Getter
 @Setter
 @Component
-@ConfigurationProperties(prefix = "notification.topic")
+@ConfigurationProperties(prefix = "topics.notification")
 public class NotificationTopicProperties {
     private String requested = "notifications.requested";
 }
