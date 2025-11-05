@@ -1,0 +1,90 @@
+name: notification
+
+on:
+  push:
+    branches: [develop, main]
+
+jobs:
+  deploy:
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Set environment variables based on branch
+        run: |
+          if [ "${GITHUB_REF_NAME}" = "main" ]; then
+            echo "HOST=${{ secrets.GCP_VM_HOST_PROD }}" >> $GITHUB_ENV
+
+            echo "SERVER_PORT=${{ secrets.SERVER_PORT_PROD }}" >> $GITHUB_ENV
+
+            echo "SMTP_USER=${{ secrets.SMTP_USER_PROD }}" >> $GITHUB_ENV
+            echo "SMTP_PASS=${{ secrets.SMTP_PASS_PROD }}" >> $GITHUB_ENV
+
+            echo "KAFKA_HOST=${{ secrets.KAFKA_HOST_PROD }}" >> $GITHUB_ENV
+            echo "KAFKA_GROUP=${{ secrets.KAFKA_GROUP_PROD }}" >> $GITHUB_ENV
+            echo "KAFKA_CONCURRENCY=${{ secrets.KAFKA_CONCURRENCY_PROD }}" >> $GITHUB_ENV
+            echo "TOPIC_NOTIFICATION_REQUESTED=${{ secrets.TOPIC_NOTIFICATION_REQUESTED_PROD }}" >> $GITHUB_ENV
+
+            echo "LOG_LEVEL_ROOT=${{ secrets.LOG_LEVEL_ROOT_PROD }}" >> $GITHUB_ENV
+            echo "LOG_LEVEL_HIBERNATE_SQL=${{ secrets.LOG_LEVEL_HIBERNATE_SQL_PROD }}" >> $GITHUB_ENV
+            echo "LOG_LEVEL_HIBERNATE_BIND=${{ secrets.LOG_LEVEL_HIBERNATE_BIND_PROD }}" >> $GITHUB_ENV
+
+            echo "EUREKA_HOSTNAME=${{ secrets.EUREKA_HOSTNAME_PROD }}" >> $GITHUB_ENV
+            echo "EUREKA_PORT=${{ secrets.EUREKA_PORT_PROD }}" >> $GITHUB_ENV
+          else
+            echo "HOST=${{ secrets.GCP_VM_HOST }}" >> $GITHUB_ENV
+
+            echo "SERVER_PORT=${{ secrets.SERVER_PORT }}" >> $GITHUB_ENV
+
+            echo "SMTP_USER=${{ secrets.SMTP_USER }}" >> $GITHUB_ENV
+            echo "SMTP_PASS=${{ secrets.SMTP_PASS }}" >> $GITHUB_ENV
+
+            echo "KAFKA_HOST=${{ secrets.KAFKA_HOST }}" >> $GITHUB_ENV
+            echo "KAFKA_GROUP=${{ secrets.KAFKA_GROUP }}" >> $GITHUB_ENV
+            echo "KAFKA_CONCURRENCY=${{ secrets.KAFKA_CONCURRENCY }}" >> $GITHUB_ENV
+            echo "TOPIC_NOTIFICATION_REQUESTED=${{ secrets.TOPIC_NOTIFICATION_REQUESTED }}" >> $GITHUB_ENV
+
+            echo "LOG_LEVEL_ROOT=${{ secrets.LOG_LEVEL_ROOT }}" >> $GITHUB_ENV
+            echo "LOG_LEVEL_HIBERNATE_SQL=${{ secrets.LOG_LEVEL_HIBERNATE_SQL }}" >> $GITHUB_ENV
+            echo "LOG_LEVEL_HIBERNATE_BIND=${{ secrets.LOG_LEVEL_HIBERNATE_BIND }}" >> $GITHUB_ENV
+
+            echo "EUREKA_HOSTNAME=${{ secrets.EUREKA_HOSTNAME }}" >> $GITHUB_ENV
+            echo "EUREKA_PORT=${{ secrets.EUREKA_PORT }}" >> $GITHUB_ENV
+          fi
+
+      - name: Set up SSH
+        run: |
+          mkdir -p ~/.ssh
+          echo "${{ secrets.GCP_VM_SSH_KEY }}" > ~/.ssh/id_rsa
+          chmod 600 ~/.ssh/id_rsa
+          ssh-keyscan -H $HOST >> ~/.ssh/known_hosts
+
+      - name: Deploy to VM
+        run: |
+          ssh ${{ secrets.GCP_VM_USER }}@$HOST << EOF
+            cd ./healntrack-notification
+            git checkout ${GITHUB_REF_NAME}
+            git pull
+            sudo docker build -t notification-service .
+
+            sudo docker stop notification-service || true
+            sudo docker rm notification-service || true
+
+            sudo docker run -d --name notification-service \
+              -p $SERVER_PORT:$SERVER_PORT \
+              -e SERVER_PORT=$SERVER_PORT \
+              -e SMTP_USER=$SMTP_USER \
+              -e SMTP_PASS=$SMTP_PASS \
+              -e KAFKA_HOST=$KAFKA_HOST \
+              -e KAFKA_GROUP=$KAFKA_GROUP \
+              -e KAFKA_CONCURRENCY=$KAFKA_CONCURRENCY \
+              -e TOPIC_NOTIFICATION_REQUESTED=$TOPIC_NOTIFICATION_REQUESTED \
+              -e LOG_LEVEL_ROOT=$LOG_LEVEL_ROOT \
+              -e LOG_LEVEL_HIBERNATE_SQL=$LOG_LEVEL_HIBERNATE_SQL \
+              -e LOG_LEVEL_HIBERNATE_BIND=$LOG_LEVEL_HIBERNATE_BIND \
+              -e EUREKA_HOSTNAME=$EUREKA_HOSTNAME \
+              -e EUREKA_PORT=$EUREKA_PORT \
+              notification-service
+          EOF
