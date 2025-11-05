@@ -75,7 +75,6 @@ jobs:
             sudo docker run -d --name notification-service \
               -p $SERVER_PORT:$SERVER_PORT \
               -e SERVER_PORT=$SERVER_PORT \
-              -e SPRING_APPLICATION_NAME=$SPRING_APPLICATION_NAME \
               -e SMTP_USER=$SMTP_USER \
               -e SMTP_PASS=$SMTP_PASS \
               -e KAFKA_HOST=$KAFKA_HOST \
