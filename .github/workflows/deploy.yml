@@ -31,7 +31,7 @@ jobs:
 
       - name: Deploy to VM
         run: |
-          ssh ${{ secrets.GCP_VM_USER }}@$HOST << 'EOF'
+          ssh ${{ secrets.GCP_VM_USER }}@$HOST << EOF
             cd ./healntrack-notification
             git checkout ${GITHUB_REF_NAME}
             git pull
