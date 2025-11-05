@@ -33,6 +33,8 @@ jobs:
 
             echo "EUREKA_HOSTNAME=${{ secrets.EUREKA_HOSTNAME_PROD }}" >> $GITHUB_ENV
             echo "EUREKA_PORT=${{ secrets.EUREKA_PORT_PROD }}" >> $GITHUB_ENV
+
+            echo "PUBLIC_HOST=${{ secrets.PUBLIC_HOST_PROD }}" >> $GITHUB_ENV
           else
             echo "HOST=${{ secrets.GCP_VM_HOST }}" >> $GITHUB_ENV
 
@@ -52,6 +54,8 @@ jobs:
 
             echo "EUREKA_HOSTNAME=${{ secrets.EUREKA_HOSTNAME }}" >> $GITHUB_ENV
             echo "EUREKA_PORT=${{ secrets.EUREKA_PORT }}" >> $GITHUB_ENV
+
+            echo "PUBLIC_HOST=${{ secrets.PUBLIC_HOST }}" >> $GITHUB_ENV
           fi
 
       - name: Set up SSH
@@ -86,5 +90,6 @@ jobs:
               -e LOG_LEVEL_HIBERNATE_BIND=$LOG_LEVEL_HIBERNATE_BIND \
               -e EUREKA_HOSTNAME=$EUREKA_HOSTNAME \
               -e EUREKA_PORT=$EUREKA_PORT \
+              -e PUBLIC_HOST="$PUBLIC_HOST" \
               notification-service
           EOF
