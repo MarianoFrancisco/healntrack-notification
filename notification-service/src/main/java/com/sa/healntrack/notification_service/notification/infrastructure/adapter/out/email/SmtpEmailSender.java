@@ -1,12 +1,11 @@
 package com.sa.healntrack.notification_service.notification.infrastructure.adapter.out.email;
 
-import com.sa.healntrack.notification_service.common.application.error.ErrorCode;
-import com.sa.healntrack.notification_service.common.application.exception.PermanentInfrastructureException;
-import com.sa.healntrack.notification_service.common.application.exception.TransientInfrastructureException;
+import com.sa.healntrack.notification_service.common.application.exception.MailAuthenticatorException;
+import com.sa.healntrack.notification_service.common.application.exception.MailSenderException;
+import com.sa.healntrack.notification_service.common.application.exception.MessageException;
 import com.sa.healntrack.notification_service.common.infrastructure.config.NotificationEmailProperties;
 import com.sa.healntrack.notification_service.notification.application.port.out.EmailSender;
 import jakarta.mail.MessagingException;
-import jakarta.mail.SendFailedException;
 import jakarta.mail.internet.MimeMessage;
 import lombok.RequiredArgsConstructor;
 import org.springframework.mail.MailAuthenticationException;
@@ -47,20 +46,13 @@ public class SmtpEmailSender implements EmailSender {
             mailSender.send(msg);
 
         } catch (MailAuthenticationException e) {
-            throw new PermanentInfrastructureException(ErrorCode.SMTP_AUTH_FAILED);
+            throw new MailAuthenticatorException();
         } catch (MailSendException e) {
-            if (e.getCause() instanceof SendFailedException || String.valueOf(e.getMessage()).contains("550")) {
-                throw new PermanentInfrastructureException(ErrorCode.SMTP_PERMANENT_FAILURE);
-            }
-            throw new TransientInfrastructureException(ErrorCode.SMTP_TRANSIENT_FAILURE, e);
+            throw new MailSenderException();
         } catch (MessagingException e) {
-            String msg = e.getMessage() != null ? e.getMessage() : "";
-            if (msg.contains("Read timed out") || msg.contains("Could not connect") || msg.contains("421")) {
-                throw new TransientInfrastructureException(ErrorCode.SMTP_TRANSIENT_FAILURE, e);
-            }
-            throw new PermanentInfrastructureException(ErrorCode.SMTP_PERMANENT_FAILURE, e);
+            throw new MessageException();
         } catch (Exception e) {
-            throw new TransientInfrastructureException(ErrorCode.UNKNOWN_ERROR, e);
+            throw new IllegalArgumentException("Error enviando el correo electrónico a " + toAddress);
         }
     }
 }
