@@ -14,6 +14,6 @@ public class NotificationServiceImpl implements SendNotification {
 
     @Override
     public void handle(SendNotificationCommand cmd) {
-        emailSender.send(cmd.getRecipient().getAddress(), cmd.getRecipient().getName(), cmd.getSubject(), cmd.getBodyHtml());
+        emailSender.send(cmd.to(), cmd.toName(), cmd.subject(), cmd.bodyHtml());
     }
 }

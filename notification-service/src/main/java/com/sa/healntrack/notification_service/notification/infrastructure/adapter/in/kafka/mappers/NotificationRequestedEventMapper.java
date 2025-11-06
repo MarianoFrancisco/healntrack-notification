@@ -1,20 +1,19 @@
 package com.sa.healntrack.notification_service.notification.infrastructure.adapter.in.kafka.mappers;
 
 import com.sa.healntrack.notification_service.notification.application.port.in.send_notification.SendNotificationCommand;
-import com.sa.healntrack.notification_service.notification.domain.Recipient;
-import com.sa.healntrack.notification_service.notification.infrastructure.adapter.in.kafka.events.NotificationRequestedEvent;
-import lombok.AccessLevel;
-import lombok.NoArgsConstructor;
+import com.sa.healntrack.notification_service.notification.infrastructure.adapter.in.kafka.events.NotificationRequestedMessage;
+import lombok.experimental.UtilityClass;
 
-@NoArgsConstructor(access = AccessLevel.PRIVATE)
-public final class NotificationRequestedEventMapper {
+@UtilityClass
+public class NotificationRequestedEventMapper {
 
-    public static SendNotificationCommand toCommand(NotificationRequestedEvent e) {
+    public SendNotificationCommand toCommand(NotificationRequestedMessage e) {
         return new SendNotificationCommand(
-                e.getRequestId(),
-                new Recipient(e.getTo(), e.getToName()),
-                e.getSubject(),
-                e.getBodyHtml()
+                e.requestId(),
+                e.to(),
+                e.toName(),
+                e.subject(),
+                e.bodyHtml()
         );
     }
 }
