@@ -71,6 +71,12 @@ jobs:
             cd ./healntrack-notification
             git checkout ${GITHUB_REF_NAME}
             git pull
+
+            sudo docker container prune -f || true
+            sudo docker image prune -af || true
+            sudo docker builder prune -af || true
+            sudo docker volume prune -f || true
+            
             sudo docker build -t notification-service .
 
             sudo docker stop notification-service || true
